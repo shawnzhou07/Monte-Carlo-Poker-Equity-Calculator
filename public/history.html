@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculation History - Monte Carlo Poker Equity Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .history-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .history-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .history-title {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px 30px;
+            border-radius: 8px;
+            border: 2px solid #FDD037;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .history-title h1 {
+            font-size: 2.5em;
+            color: #FDD037;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: 600;
+        }
+
+        .history-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn {
+            background: linear-gradient(45deg, #FDD037, #e6b800);
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #b8860b;
+            font-family: 'Cinzel', serif;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .history-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(253, 208, 55, 0.3);
+            background: linear-gradient(45deg, #e6b800, #FDD037);
+            opacity: 1;
+        }
+
+
+        .history-list {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            border: 2px solid #FDD037;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .history-list-title {
+            font-size: 1.3em;
+            color: #FDD037;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(253, 208, 55, 0.3);
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #FDD037;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-timestamp {
+            color: #FDD037;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .history-simulations {
+            color: white;
+            font-size: 0.9em;
+            background: rgba(253, 208, 55, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .history-cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .card-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+
+        .card-group-label {
+            color: #FDD037;
+            font-size: 0.8em;
+            font-weight: 500;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .card-row {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .history-card-image {
+            width: 35px;
+            height: 49px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            object-fit: cover;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .history-card-image:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .history-card-fallback {
+            width: 35px;
+            height: 49px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 10px;
+            background: white;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .history-card-fallback.hearts,
+        .history-card-fallback.diamonds {
+            color: #dc2626;
+        }
+
+        .history-card-fallback.clubs,
+        .history-card-fallback.spades {
+            color: #000;
+        }
+
+        .history-card-back {
+            width: 35px;
+            height: 49px;
+            border-radius: 4px;
+            border: 1px solid #ffffff;
+            background: #000000;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .history-card-back::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(45deg, transparent 48%, #ffffff 50%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, #ffffff 50%, transparent 52%);
+            background-size: 20px 20px;
+            opacity: 0.8;
+        }
+
+        .history-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .result-group {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(253, 208, 55, 0.2);
+        }
+
+        .result-group-title {
+            color: #FDD037;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .result-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+        }
+
+        .result-exact {
+            color: #4caf50;
+        }
+
+        .result-monte {
+            color: #ff9800;
+        }
+
+        .no-history {
+            text-align: center;
+            color: #FDD037;
+            font-size: 1.2em;
+            padding: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(253, 208, 55, 0.3);
+        }
+
+        .error-msg {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff4444;
+            color: #ff6666;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            color: #FDD037;
+            font-size: 1.1em;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <div class="history-header">
+            <div class="history-title">
+                <h1>Calculation History</h1>
+            </div>
+            <div class="history-controls">
+                <button class="history-btn" onclick="goToCalculator()">Back to Calculator</button>
+            </div>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+
+        <div class="history-list">
+            <div class="history-list-title">Recent Calculations</div>
+            <div id="historyContent">
+                <div class="loading">Loading history...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        //history page specific functions
+
+
+        function goToCalculator() {
+            window.location.href = 'index.html';
+        }
+
+        function showSuccess(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.background = 'rgba(0, 255, 0, 0.2)';
+            errorMsg.style.borderColor = '#44ff44';
+            errorMsg.style.color = '#66ff66';
+            errorMsg.textContent = message;
+            errorMsg.classList.add('show');
+            
+            setTimeout(() => {
+                errorMsg.classList.remove('show');
+            }, 3000);
+        }
+
+        //history page initialization
+    </script>
+</body>
+</html>
