@@ -327,4 +327,11 @@ function evaluateWinner(heroCardsArray, villainCardsArray, boardCardsArray) {
 	return 'tie';
 }
 
-module.exports = { evaluateWinner };
+module.exports = { 
+    evaluateWinner,
+    getHandRankVector,
+    rankCharToValue,
+    countValues,
+    countSuits,
+    compareRankVectors
+};
